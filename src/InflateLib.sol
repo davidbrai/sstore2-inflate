@@ -155,7 +155,7 @@ library InflateLib {
             ErrorCode err;
 
             uint256 tempCode;
-            for (len = 1; len <= MAXBITS; ++len) {
+            for (len = 1; len <= MAXBITS; len += 5) {
                 // Get next bit
                 (err, tempCode) = bits(s, 1);
                 if (err != ErrorCode.ERR_NONE) {
@@ -163,6 +163,78 @@ library InflateLib {
                 }
                 code |= tempCode;
                 count = h.counts[len];
+
+                // If length len, return symbol
+                if (code < first + count) {
+                    return (ErrorCode.ERR_NONE, h.symbols[index + (code - first)]);
+                }
+                // Else update for next length
+                index += count;
+                first += count;
+                first <<= 1;
+                code <<= 1;
+
+                // Get next bit
+                (err, tempCode) = bits(s, 1);
+                if (err != ErrorCode.ERR_NONE) {
+                    return (err, 0);
+                }
+                code |= tempCode;
+                count = h.counts[len + 1];
+
+                // If length len, return symbol
+                if (code < first + count) {
+                    return (ErrorCode.ERR_NONE, h.symbols[index + (code - first)]);
+                }
+                // Else update for next length
+                index += count;
+                first += count;
+                first <<= 1;
+                code <<= 1;
+
+                // Get next bit
+                (err, tempCode) = bits(s, 1);
+                if (err != ErrorCode.ERR_NONE) {
+                    return (err, 0);
+                }
+                code |= tempCode;
+                count = h.counts[len + 2];
+
+                // If length len, return symbol
+                if (code < first + count) {
+                    return (ErrorCode.ERR_NONE, h.symbols[index + (code - first)]);
+                }
+                // Else update for next length
+                index += count;
+                first += count;
+                first <<= 1;
+                code <<= 1;
+
+                // Get next bit
+                (err, tempCode) = bits(s, 1);
+                if (err != ErrorCode.ERR_NONE) {
+                    return (err, 0);
+                }
+                code |= tempCode;
+                count = h.counts[len + 3];
+
+                // If length len, return symbol
+                if (code < first + count) {
+                    return (ErrorCode.ERR_NONE, h.symbols[index + (code - first)]);
+                }
+                // Else update for next length
+                index += count;
+                first += count;
+                first <<= 1;
+                code <<= 1;
+
+                // Get next bit
+                (err, tempCode) = bits(s, 1);
+                if (err != ErrorCode.ERR_NONE) {
+                    return (err, 0);
+                }
+                code |= tempCode;
+                count = h.counts[len + 4];
 
                 // If length len, return symbol
                 if (code < first + count) {
@@ -215,7 +287,7 @@ library InflateLib {
             // One possible code of zero length
             left = 1;
 
-            for (len = 1; len <= MAXBITS; ++len) {
+            for (len = 1; len <= MAXBITS; len += 5) {
                 // One more bit, double codes left
                 left <<= 1;
                 if (left < h.counts[len]) {
@@ -223,8 +295,43 @@ library InflateLib {
                     return ErrorCode.ERR_CONSTRUCT;
                 }
                 // Deduct count from possible codes
-
                 left -= h.counts[len];
+
+                // One more bit, double codes left
+                left <<= 1;
+                if (left < h.counts[len + 1]) {
+                    // Over-subscribed--return error
+                    return ErrorCode.ERR_CONSTRUCT;
+                }
+                // Deduct count from possible codes
+                left -= h.counts[len + 1];
+
+                // One more bit, double codes left
+                left <<= 1;
+                if (left < h.counts[len + 2]) {
+                    // Over-subscribed--return error
+                    return ErrorCode.ERR_CONSTRUCT;
+                }
+                // Deduct count from possible codes
+                left -= h.counts[len + 2];
+
+                // One more bit, double codes left
+                left <<= 1;
+                if (left < h.counts[len + 3]) {
+                    // Over-subscribed--return error
+                    return ErrorCode.ERR_CONSTRUCT;
+                }
+                // Deduct count from possible codes
+                left -= h.counts[len + 3];
+
+                // One more bit, double codes left
+                left <<= 1;
+                if (left < h.counts[len + 4]) {
+                    // Over-subscribed--return error
+                    return ErrorCode.ERR_CONSTRUCT;
+                }
+                // Deduct count from possible codes
+                left -= h.counts[len + 4];
             }
 
             // Generate offsets into symbol table for each length for sorting
